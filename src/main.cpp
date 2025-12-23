@@ -26,6 +26,8 @@ static const uint8_t SPEED_STEPS[] = {1, 1, 1, 3};
 static const char* SPEED_NAMES[] = {"SLOW", "MED", "FAST", "TURBO"};
 static uint8_t speedLevel = 0;  // Start at slowest
 static uint8_t frameCount = 0;
+static uint32_t lastResetTime = 0;
+static const uint32_t AUTO_RESET_MS = 15 * 60 * 1000;  // 15 minutes
 
 // 80s synthwave colors
 static const uint16_t NEON_PINK = 0xF81F;    // Hot pink
@@ -34,18 +36,18 @@ static const uint16_t NEON_PURPLE = 0x780F;  // Purple
 static const uint16_t DARK_BLUE = 0x0008;    // Dark background
 
 void showSplash() {
-  spr.fillSprite(TFT_BLACK);
+  tft.fillScreen(TFT_BLACK);
 
   // Dark gradient background (top to bottom: dark purple to black)
   for (int y = 0; y < SCREEN_H; y++) {
     uint8_t purple = (SCREEN_H - y) / 10;
     uint16_t col = tft.color565(purple, 0, purple * 2);
-    spr.drawFastHLine(0, y, SCREEN_W, col);
+    tft.drawFastHLine(0, y, SCREEN_W, col);
   }
 
   // Scan lines for CRT effect
   for (int y = 0; y < SCREEN_H; y += 3) {
-    spr.drawFastHLine(0, y, SCREEN_W, TFT_BLACK);
+    tft.drawFastHLine(0, y, SCREEN_W, TFT_BLACK);
   }
 
   // Grid lines at bottom (synthwave horizon)
@@ -53,13 +55,13 @@ void showSplash() {
   for (int y = horizonY; y < SCREEN_H; y += 8) {
     uint8_t brightness = (y - horizonY) * 2;
     uint16_t gridCol = tft.color565(brightness/3, 0, brightness);
-    spr.drawFastHLine(0, y, SCREEN_W, gridCol);
+    tft.drawFastHLine(0, y, SCREEN_W, gridCol);
   }
   // Vertical perspective lines
   for (int i = -4; i <= 4; i++) {
     int x1 = SCREEN_W/2 + i * 8;
     int x2 = SCREEN_W/2 + i * 40;
-    spr.drawLine(x1, horizonY, x2, SCREEN_H, NEON_PURPLE);
+    tft.drawLine(x1, horizonY, x2, SCREEN_H, NEON_PURPLE);
   }
 
   // Sun (half circle at horizon)
@@ -67,29 +69,30 @@ void showSplash() {
     uint8_t rCol = 255 - r * 4;
     uint8_t gCol = 100 - r * 2;
     uint16_t sunCol = tft.color565(rCol, gCol > 100 ? gCol : 0, r * 3);
-    spr.drawCircle(SCREEN_W/2, horizonY + 5, r, sunCol);
+    tft.drawCircle(SCREEN_W/2, horizonY + 5, r, sunCol);
   }
   // Clip sun below horizon
-  spr.fillRect(0, horizonY + 6, SCREEN_W, SCREEN_H - horizonY, TFT_BLACK);
+  tft.fillRect(0, horizonY + 6, SCREEN_W, SCREEN_H - horizonY, TFT_BLACK);
   // Redraw grid over clipped area
   for (int y = horizonY + 6; y < SCREEN_H; y += 8) {
-    spr.drawFastHLine(0, y, SCREEN_W, NEON_PURPLE);
+    tft.drawFastHLine(0, y, SCREEN_W, NEON_PURPLE);
   }
   for (int i = -4; i <= 4; i++) {
     int x1 = SCREEN_W/2 + i * 8;
     int x2 = SCREEN_W/2 + i * 40;
-    spr.drawLine(x1, horizonY, x2, SCREEN_H, NEON_PURPLE);
+    tft.drawLine(x1, horizonY, x2, SCREEN_H, NEON_PURPLE);
   }
 
-  // DOS-style green title
-  spr.setTextColor(TFT_GREEN);
-  spr.drawString("esp_CITY_32", 55, 25, 4);
+  // Title text
+  tft.setTextColor(NEON_PINK);
+  tft.drawString("CITY", 75, 20, 4);
+  tft.setTextColor(NEON_CYAN);
+  tft.drawString("SCREENSAVER", 52, 52, 2);
 
-  // Author credit
-  spr.setTextColor(tft.color565(0, 180, 0));  // Slightly dimmer green
-  spr.drawString("by bneidlinger", 70, 60, 2);
+  // Subtitle
+  tft.setTextColor(tft.color565(100, 100, 100));
+  tft.drawString("2025", 105, 75, 1);
 
-  spr.pushSprite(0, 0);
   delay(2500);
 }
 
@@ -155,6 +158,7 @@ void setup() {
 
   showSplash();
   city.reset();
+  lastResetTime = millis();
 }
 
 void handleInput() {
@@ -172,7 +176,15 @@ void handleInput() {
   if (rightPressed()) {
     showSplash();
     city.reset();
+    lastResetTime = now;
     lastPress = now;
+  }
+
+  // Auto-reset after 15 minutes to prevent screen burnout
+  if (now - lastResetTime >= AUTO_RESET_MS) {
+    showSplash();
+    city.reset();
+    lastResetTime = now;
   }
 }
 
