@@ -27,6 +27,72 @@ static const char* SPEED_NAMES[] = {"SLOW", "MED", "FAST", "TURBO"};
 static uint8_t speedLevel = 0;  // Start at slowest
 static uint8_t frameCount = 0;
 
+// 80s synthwave colors
+static const uint16_t NEON_PINK = 0xF81F;    // Hot pink
+static const uint16_t NEON_CYAN = 0x07FF;    // Cyan
+static const uint16_t NEON_PURPLE = 0x780F;  // Purple
+static const uint16_t DARK_BLUE = 0x0008;    // Dark background
+
+void showSplash() {
+  spr.fillSprite(TFT_BLACK);
+
+  // Dark gradient background (top to bottom: dark purple to black)
+  for (int y = 0; y < SCREEN_H; y++) {
+    uint8_t purple = (SCREEN_H - y) / 10;
+    uint16_t col = tft.color565(purple, 0, purple * 2);
+    spr.drawFastHLine(0, y, SCREEN_W, col);
+  }
+
+  // Scan lines for CRT effect
+  for (int y = 0; y < SCREEN_H; y += 3) {
+    spr.drawFastHLine(0, y, SCREEN_W, TFT_BLACK);
+  }
+
+  // Grid lines at bottom (synthwave horizon)
+  int horizonY = 95;
+  for (int y = horizonY; y < SCREEN_H; y += 8) {
+    uint8_t brightness = (y - horizonY) * 2;
+    uint16_t gridCol = tft.color565(brightness/3, 0, brightness);
+    spr.drawFastHLine(0, y, SCREEN_W, gridCol);
+  }
+  // Vertical perspective lines
+  for (int i = -4; i <= 4; i++) {
+    int x1 = SCREEN_W/2 + i * 8;
+    int x2 = SCREEN_W/2 + i * 40;
+    spr.drawLine(x1, horizonY, x2, SCREEN_H, NEON_PURPLE);
+  }
+
+  // Sun (half circle at horizon)
+  for (int r = 25; r > 0; r--) {
+    uint8_t rCol = 255 - r * 4;
+    uint8_t gCol = 100 - r * 2;
+    uint16_t sunCol = tft.color565(rCol, gCol > 100 ? gCol : 0, r * 3);
+    spr.drawCircle(SCREEN_W/2, horizonY + 5, r, sunCol);
+  }
+  // Clip sun below horizon
+  spr.fillRect(0, horizonY + 6, SCREEN_W, SCREEN_H - horizonY, TFT_BLACK);
+  // Redraw grid over clipped area
+  for (int y = horizonY + 6; y < SCREEN_H; y += 8) {
+    spr.drawFastHLine(0, y, SCREEN_W, NEON_PURPLE);
+  }
+  for (int i = -4; i <= 4; i++) {
+    int x1 = SCREEN_W/2 + i * 8;
+    int x2 = SCREEN_W/2 + i * 40;
+    spr.drawLine(x1, horizonY, x2, SCREEN_H, NEON_PURPLE);
+  }
+
+  // DOS-style green title
+  spr.setTextColor(TFT_GREEN);
+  spr.drawString("esp_CITY_32", 55, 25, 4);
+
+  // Author credit
+  spr.setTextColor(tft.color565(0, 180, 0));  // Slightly dimmer green
+  spr.drawString("by bneidlinger", 70, 60, 2);
+
+  spr.pushSprite(0, 0);
+  delay(2500);
+}
+
 // Map intensity -> “night satellite” color
 // (keep it simple: dark blues for low, warm whites for high)
 static inline uint16_t satColor(uint8_t v) {
@@ -87,11 +153,7 @@ void setup() {
 
   spr.createSprite(SCREEN_W, SCREEN_H);
 
-  spr.fillSprite(TFT_BLACK);
-  spr.setTextColor(TFT_GREEN, TFT_BLACK);
-  spr.drawString("CityScreensaver booting...", 6, 6, 2);
-  spr.pushSprite(0, 0);
-
+  showSplash();
   city.reset();
 }
 
@@ -108,6 +170,7 @@ void handleInput() {
   }
 
   if (rightPressed()) {
+    showSplash();
     city.reset();
     lastPress = now;
   }
