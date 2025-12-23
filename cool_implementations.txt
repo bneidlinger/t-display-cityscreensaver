@@ -1,0 +1,9 @@
+Night imagery:
+
+Add dithering (fake glow) by randomly brightening neighboring pixels a tiny amount.
+
+Two-layer grid: roads layer + ambient glow layer (blur-ish).
+
+Water/parks mask: generate a few big dark blobs that roads avoid (looks like lakes/green space).
+
+Arterials vs streets: 10% of walkers deposit stronger brightness and turn less often (highways).

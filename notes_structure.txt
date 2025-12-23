@@ -1,0 +1,31 @@
+t-display-cityscreensaver/
+├─ platformio.ini
+├─ README.md
+├─ include/
+│  ├─ CitySim.h
+│  └─ Pins.h
+└─ src/
+   └─ main.cpp
+
+
+TFT (ST7789):
+
+MOSI GPIO19
+
+SCLK GPIO18
+
+CS GPIO5
+
+DC GPIO16
+
+RST GPIO23 (sometimes -1 / tied to EN)
+
+BL (backlight) GPIO4 (sometimes always-on)
+
+Buttons:
+
+Left: GPIO0
+
+Right: GPIO35 (input-only)
+
+TENSTAR T-Display ESP32-D0WD CH9102 Chip 16MB WiFi And Bluetooth-Compatible Module Development Board 1.14 Inch LCD Control
