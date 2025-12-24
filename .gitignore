@@ -4,3 +4,10 @@
 .vscode/launch.json
 .vscode/ipch
 platformio.ini
+
+# Evolution experiment
+experiment/captures/*.jpg
+experiment/captures/*.png
+experiment/generations/*.json
+__pycache__/
+*.pyc

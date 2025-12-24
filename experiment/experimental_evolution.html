@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project: Nocturnal City Evolution</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #e0e0e0; background: #121212; max-width: 900px; margin: auto; padding: 40px; }
+        h1, h2, h3 { color: #4facfe; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        code { background: #1e1e1e; color: #ff79c6; padding: 2px 6px; border-radius: 4px; }
+        pre { background: #1e1e1e; padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid #333; }
+        .note { background: #2d2d00; border-left: 5px solid #ffcc00; padding: 15px; margin: 20px 0; }
+        .step { margin-bottom: 40px; padding: 20px; border: 1px solid #333; border-radius: 10px; background: #1a1a1a; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { text-align: left; padding: 12px; border: 1px solid #333; }
+        th { background: #222; }
+    </style>
+</head>
+<body>
+
+    <h1>Nocturnal City Evolution (ESP32)</h1>
+    <p><em>An autonomous experiment in aesthetic optimization using Vision AI (Gemini) and Code Agents (Claude Code).</em></p>
+
+    <div class="note">
+        <strong>Goal:</strong> Automate the iterative improvement of an generative "City at Night" simulation by using an AI feedback loop.
+    </div>
+
+    <section class="step">
+        <h2>1. The Hardware Loop Setup</h2>
+        <p>To automate this, the "Manual Video Capture" is the biggest bottleneck. Use this setup for 100% automation:</p>
+        <ul>
+            <li><strong>The "Virtual Camera" Strategy:</strong> Instead of filming, modify the ESP32 code to dump the <code>TFT Framebuffer</code> over Serial to a Python script on your PC.</li>
+            <li><strong>Python Orchestrator:</strong> Use a script to listen to the COM port, save the incoming bytes as a <code>.png</code> or <code>.mp4</code> every 1 minute.</li>
+            <li><strong>CLI Flashing:</strong> Use <code>arduino-cli</code> to compile and upload code to specific ESP32s without opening the IDE.</li>
+        </ul>
+        <pre># Example flash command for the Python script
+arduino-cli compile --fqbn esp32:esp32:esp32 ./CitySim
+arduino-cli upload -p COM3 --fqbn esp32:esp32:esp32 ./CitySim</pre>
+    </section>
+
+    <section class="step">
+        <h2>2. The "Critic" Prompt (Gemini Vision)</h2>
+        <p>Feed the 15-minute timelapse (or a grid of 5 keyframes) to Gemini 1.5 Pro. Use this prompt to get <strong>machine-readable</strong> data for Claude:</p>
+        
+        <pre><strong>Role:</strong> You are an expert in Generative Art Aesthetics and Urban Satellite Imagery.
+<strong>Task:</strong> Analyze the provided footage of a generative "City at Night" simulation.
+<strong>Output Format:</strong> Return ONLY a valid JSON object.
+
+<strong>Metrics to Evaluate (1-100):</strong>
+1. "organic_growth": Does it look like a real city sprawl or a rigid grid?
+2. "luminance_balance": Is the contrast between nodes and streets realistic?
+3. "temporal_pacing": Is the speed of development visually pleasing?
+
+<strong>Prompt:</strong>
+{
+  "scores": { "organic": 0, "luminance": 0, "pacing": 0 },
+  "critique": "Detailed explanation of what looks 'fake' or 'cluttered'.",
+  "technical_suggestions": "Specific mathematical or logic changes (e.g., 'use more Perlin noise', 'reduce node decay rate')."
+}</pre>
+    </section>
+
+    <section class="step">
+        <h2>3. Feeding Results to Claude Code</h2>
+        <p>Once you have the JSON from Gemini, you pipe it into <code>claude code</code>. The "Evolutionary Prompt" should look like this:</p>
+        
+        <pre><strong>Command:</strong> claude code "The current simulation received these scores: [PASTE_GEMINI_JSON]. 
+Based on the critique, modify 'CityDrawer.cpp' to improve the 'organic_growth' score. 
+Prioritize refactoring the street-branching logic. 
+Maintain compatibility with the ST7789 display driver. 
+Do not exceed 320kb of flash memory."</pre>
+    </section>
+
+    <section class="step">
+        <h2>4. The Automation Workflow (Summary)</h2>
+        <table>
+            <tr>
+                <th>Phase</th>
+                <th>Tool</th>
+                <th>Action</th>
+            </tr>
+            <tr>
+                <td><strong>Run</strong></td>
+                <td>ESP32 + Python</td>
+                <td>Run code, stream framebuffer, save MP4.</td>
+            </tr>
+            <tr>
+                <td><strong>Rate</strong></td>
+                <td>Gemini API</td>
+                <td>Analyze MP4, output JSON scorecard.</td>
+            </tr>
+            <tr>
+                <td><strong>Evolve</strong></td>
+                <td>Claude Code</td>
+                <td>Read JSON + Code, apply fixes, save file.</td>
+            </tr>
+            <tr>
+                <td><strong>Deploy</strong></td>
+                <td>arduino-cli</td>
+                <td>Compile & Flash to ESP32. Repeat.</td>
+            </tr>
+        </table>
+    </section>
+
+    <p><em>Next Step: get to work</em></p>
+
+</body>
+</html>

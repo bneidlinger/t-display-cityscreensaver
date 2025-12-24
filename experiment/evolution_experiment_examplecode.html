@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab Report: ESP32 Generative City Evolution</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #d1d1d1; background: #0f172a; max-width: 1000px; margin: 40px auto; padding: 20px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; }
+        h1, h2 { color: #38bdf8; border-bottom: 2px solid #38bdf8; padding-bottom: 10px; }
+        code { color: #f472b6; font-family: 'Fira Code', monospace; background: #000; padding: 2px 5px; border-radius: 4px; }
+        pre { background: #000; padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid #334155; color: #10b981; }
+        .flow-step { border-left: 4px solid #38bdf8; padding-left: 20px; margin-bottom: 30px; }
+        .highlight { color: #fbbf24; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Project: Nocturnal Sprawl</h1>
+    <p>Developing an autonomous feedback loop where <strong>Vision AI</strong> acts as the aesthetic judge for <strong>Generative ESP32 code</strong>.</p>
+
+    <div class="dashboard">
+        <div class="card">
+            <h3>Evolutionary Loop</h3>
+            <ol>
+                <li><strong>Code:</strong> Claude Code mutates <code>main.cpp</code>.</li>
+                <li><strong>Deploy:</strong> <code>arduino-cli</code> flashes the ESP32.</li>
+                <li><strong>Capture:</strong> ESP32 streams "Screen Data" to Python.</li>
+                <li><strong>Evaluate:</strong> Gemini 2.0 Flash rates the visual JSON.</li>
+            </ol>
+        </div>
+        <div class="card">
+            <h3>Dependencies</h3>
+            <ul>
+                <li><code>python-genai</code> (Gemini SDK)</li>
+                <li><code>pyserial</code> (Serial communication)</li>
+                <li><code>arduino-cli</code> (Headless flashing)</li>
+                <li><code>TFT_eSPI</code> (Graphics library)</li>
+            </ul>
+        </div>
+    </div>
+
+    <hr>
+
+    <section class="flow-step">
+        <h2>Phase 1: The "Critic" Prompt (Gemini)</h2>
+        <p>This prompt is designed to return <strong>Structured Data</strong>. Use the Gemini 2.0 Flash model for speed.</p>
+        <pre>
+USER PROMPT:
+"Analyze this timelapse of a generative 'city from above' simulation on a 1.14 inch screen. 
+Rate the aesthetics from 1-10 on 'Realism', 'Organic Distribution', and 'Visual Interest'.
+Return ONLY a JSON object with this schema:
+{
+  'scores': {'realism': int, 'organic': int, 'interest': int},
+  'visual_critique': 'string',
+  'suggested_code_tweaks': ['string', 'string']
+}"
+        </pre>
+    </section>
+
+    <section class="flow-step">
+        <h2>Phase 2: The Python Orchestrator</h2>
+        <p>This script automates the hand-off between the AI models.</p>
+        <pre>
+import serial
+import subprocess
+from google import genai
+
+# 1. TRIGGER CLAUDE CODE MUTATION
+def run_mutation(feedback):
+    cmd = f"claude code 'Modify main.cpp based on this feedback: {feedback}. Optimize for a 1.14 inch ST7789 display.'"
+    subprocess.run(cmd, shell=True)
+
+# 2. COMPILE AND FLASH
+def flash_esp32():
+    subprocess.run("arduino-cli compile --fqbn esp32:esp32:esp32", shell=True)
+    subprocess.run("arduino-cli upload -p COM3 --fqbn esp32:esp32:esp32", shell=True)
+
+# 3. GET AI FEEDBACK
+def get_gemini_rating(video_path):
+    client = genai.Client(api_key="YOUR_API_KEY")
+    video = client.files.upload(file=video_path)
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=[video, "Rate this generative art (see JSON prompt instructions)."]
+    )
+    return response.text # Returns JSON string
+        </pre>
+    </section>
+
+    <section class="flow-step">
+        <h2>Phase 3: The "Coder" Prompt (Claude)</h2>
+        <p>When you feed the JSON back to Claude, use this template to ensure it doesn't break your hardware specific setup:</p>
+        <pre>
+"The ESP32 simulation just ran. The Vision AI gave it a {score}/10. 
+Critique: {visual_critique}. 
+Suggested Tweaks: {suggested_code_tweaks}.
+
+Refactor the 'drawCity()' function in main.cpp. 
+STRICT RULES:
+1. Use TFT_eSPI functions only.
+2. Keep it within the 240x135 resolution.
+3. Don't use external assets; keep it purely algorithmic."
+        </pre>
+    </section>
+
+    <div class="card" style="background: #1e3a8a;">
+        <p class="highlight">Pro-Tip for the ESP32 Code:</p>
+        <p>Include <code>Serial.println("START_FRAME");</code> and <code>Serial.println("END_FRAME");</code> in your loop. This allows your Python script to know exactly when a frame is finished so it can "stitch" them into a video for Gemini.</p>
+    </div>
+
+</body>
+</html>
